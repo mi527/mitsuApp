@@ -62,12 +62,10 @@
 <body>
     <div class="container">
         <h1>人生カウンター</h1>
-        <p>現在の年齢と、何歳で死ぬかを入力してください。</p>
+
+        <div class="results" id="results"></div>
 
         <form id="lifeForm">
-            <label for="currentAge">現在の年齢:</label>
-            <input type="number" id="currentAge" min="0" max="150" value="35" required readonly>
-
             <label for="deathAges">何歳で死ぬか (最大5つ):</label>
             <input type="number" class="deathAgeInput" min="1" max="150" value="40">
             <input type="number" class="deathAgeInput" min="1" max="150" value="45">
@@ -77,23 +75,24 @@
 
             <button type="button" onclick="calculateLifeDays()">再計算する</button>
         </form>
-
-        <div class="results" id="results"></div>
     </div>
 
     <script>
         function calculateLifeDays() {
             const today = new Date();
             const birthDate = new Date(1989, 4, 27); // 1989年5月27日生まれ
-            const currentAge = today.getFullYear() - birthDate.getFullYear();
-            const deathAgeInputs = document.querySelectorAll('.deathAgeInput');
+            const currentAgeYears = today.getFullYear() - birthDate.getFullYear();
+            const currentAgeMonths = today.getMonth() - birthDate.getMonth();
+            const adjustedAgeYears = currentAgeMonths < 0 ? currentAgeYears - 1 : currentAgeYears;
+            const adjustedAgeMonths = currentAgeMonths < 0 ? currentAgeMonths + 12 : currentAgeMonths;
 
-            let resultsHTML = `<p>現在の年齢: <strong>${currentAge}</strong> 歳</p>`;
+            let resultsHTML = `<p>現在の年齢: <strong>${adjustedAgeYears}歳 ${adjustedAgeMonths}ヶ月</strong></p>`;
             resultsHTML += `<p>これまで生きた日数: <strong>${Math.floor((today - birthDate) / (1000 * 60 * 60 * 24))}</strong> 日</p>`;
 
+            const deathAgeInputs = document.querySelectorAll('.deathAgeInput');
             deathAgeInputs.forEach(input => {
                 const deathAge = parseInt(input.value, 10);
-                if (!isNaN(deathAge) && deathAge > currentAge) {
+                if (!isNaN(deathAge) && deathAge > adjustedAgeYears) {
                     const deathDate = new Date(birthDate);
                     deathDate.setFullYear(birthDate.getFullYear() + deathAge);
                     const daysRemaining = Math.floor((deathDate - today) / (1000 * 60 * 60 * 24));
