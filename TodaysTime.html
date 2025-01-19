@@ -65,6 +65,12 @@
     </div>
 
     <script>
+        function formatTime(minutes) {
+            const hrs = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+        }
+
         function calculateTime() {
             const wakeUpTimeInput = document.getElementById('wakeUpTime').value;
             const wakeUpTime = new Date();
@@ -77,31 +83,75 @@
             const bedTime = new Date(wakeUpTime);
             bedTime.setHours(wakeUpTime.getHours() + 17);  // 17時間後に寝る時間
 
-            const timeElapsed = (now - wakeUpTime) / (1000 * 60 * 60);  // 時間単位で経過時間
-            const timeRemaining = (bedTime - now) / (1000 * 60 * 60);  // 残り時間
+            const timeElapsedMinutes = (now - wakeUpTime) / (1000 * 60);  // 分単位で経過時間
+            const timeRemainingMinutes = (bedTime - now) / (1000 * 60);  // 残り時間（分）
 
-            const totalHours = 17;
-            const percentElapsed = (timeElapsed / totalHours) * 100;
+            const totalMinutes = 17 * 60;  // 17時間 = 1020分
+            const percentElapsed = (timeElapsedMinutes / totalMinutes) * 100;
 
             // 結果を表示
-            document.getElementById('elapsedTime').textContent = `今日起きてからの時間: ${timeElapsed.toFixed(2)} 時間`;
-            document.getElementById('timeRemaining').textContent = `寝るまで残り: ${timeRemaining.toFixed(2)} 時間`;
-            document.getElementById('percent').textContent = `1日の経過時間: ${percentElapsed.toFixed(2)}%`;
+            document.getElementById('elapsedTime').textContent = `今日起きてからの時間: ${formatTime(timeElapsedMinutes)}`;
+            document.getElementById('timeRemaining').textContent = `寝るまで残り: ${formatTime(timeRemainingMinutes)}`;
+            document.getElementById('percent').textContent = `1日の経過時間: ${formatTime(timeElapsedMinutes)} (${percentElapsed.toFixed(2)}%)`;
 
             // グラフデータ
             const data = {
                 labels: ['経過時間', '残り時間'],
                 datasets: [{
-                    data: [timeElapsed, timeRemaining],
+                    data: [timeElapsedMinutes, timeRemainingMinutes],
                     backgroundColor: ['#4caf50', '#ff6347'],
-                    hoverBackgroundColor: ['#45a049', '#ff4c39']
+                    hoverBackgroundColor: ['#45a049', '#ff4c39'],
+                    borderWidth: 1
                 }]
             };
+
+            // 時間のラベルを追加
+            const clockLabels = [];
+            const wakeTimeHours = wakeUpTime.getHours();
+            for (let i = 0; i < 17; i++) {
+                const hour = (wakeTimeHours + i) % 24;
+                clockLabels.push(`${String(hour).padStart(2, '0')}:00`);
+            }
 
             const ctx = document.getElementById('timeChart').getContext('2d');
             const chart = new Chart(ctx, {
                 type: 'pie',
-                data: data
+                data: data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    const value = tooltipItem.raw;
+                                    return `${formatTime(value)}`;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                        },
+                        datalabels: {
+                            display: true,
+                            formatter: function(value, context) {
+                                return formatTime(value);
+                            }
+                        },
+                        annotation: {
+                            annotations: [{
+                                type: 'label',
+                                content: `起きた時間: ${wakeUpTime.getHours()}:${String(wakeUpTime.getMinutes()).padStart(2, '0')}`,
+                                position: 'center',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            }]
+                        }
+                    },
+                    circumference: Math.PI,
+                    rotation: -Math.PI,
+                }
             });
         }
 
