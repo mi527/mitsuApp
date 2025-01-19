@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今日の残り時間</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>今日の残り時間</h1>
+
+  <label for="wakeTime">起きた時間 (例: 07:00)</label>
+  <input type="time" id="wakeTime" value="07:00">
+  <button onclick="calculateTime()">計算</button>
+
+  <div>
+    <p>現在、起きた時間から経過した時間: <span id="elapsedTime">0</span> 時間</p>
+    <p>寝るまで残り: <span id="remainingTime">0</span> 時間</p>
+    <p>今日の経過割合: <span id="percentage">0</span>%</p>
+  </div>
+
+  <canvas id="myPieChart" width="400" height="400"></canvas>
+
+  <script>
+    function calculateTime() {
+      // デフォルト設定
+      const wakeTimeInput = document.getElementById('wakeTime').value;
+      const wakeTime = new Date();
+      const [hours, minutes] = wakeTimeInput.split(':');
+      wakeTime.setHours(hours, minutes, 0, 0);
+
+      const now = new Date();
+      const dayStart = new Date();
+      dayStart.setHours(7, 0, 0, 0); // 7時
+
+      const dayEnd = new Date();
+      dayEnd.setHours(24, 0, 0, 0); // 24時（就寝予定）
+
+      // 今日の起きてからの時間を計算
+      const elapsedTime = Math.max((now - wakeTime) / 3600000, 0); // 時間換算
+
+      // 寝る時間の計算
+      const sleepTime = new Date(wakeTime);
+      sleepTime.setHours(sleepTime.getHours() + 17);
+
+      // 残りの時間を計算
+      const remainingTime = Math.max((sleepTime - now) / 3600000, 0); // 時間換算
+
+      // 今日の経過割合を計算
+      const totalDayTime = 17 * 60; // 17時間
+      const passedTimeInMinutes = (now - wakeTime) / 60000;
+      const percentage = Math.min((passedTimeInMinutes / totalDayTime) * 100, 100);
+
+      // 結果を画面に表示
+      document.getElementById('elapsedTime').textContent = elapsedTime.toFixed(1);
+      document.getElementById('remainingTime').textContent = remainingTime.toFixed(1);
+      document.getElementById('percentage').textContent = percentage.toFixed(1);
+
+      // 円グラフのデータ設定
+      const data = {
+        labels: ['起きている時間', '残り時間'],
+        datasets: [{
+          data: [elapsedTime, remainingTime],
+          backgroundColor: ['#FF6384', '#36A2EB'],
+          hoverBackgroundColor: ['#FF4560', '#55A9D7']
+        }]
+      };
+
+      const ctx = document.getElementById('myPieChart').getContext('2d');
+      const myPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: data
+      });
+    }
+  </script>
+</body>
+</html>
