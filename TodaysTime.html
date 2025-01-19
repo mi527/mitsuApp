@@ -65,10 +65,11 @@
     </div>
 
     <script>
+        // 時間を"〇時間〇分"形式にフォーマットする関数
         function formatTime(minutes) {
-            const hrs = Math.floor(minutes / 60);
-            const mins = minutes % 60;
-            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+            const hrs = Math.floor(minutes / 60);  // 小数点以下切り捨て
+            const mins = Math.floor(minutes % 60); // 小数点以下切り捨て
+            return `${hrs}時間${mins}分`;
         }
 
         function calculateTime() {
@@ -83,8 +84,8 @@
             const bedTime = new Date(wakeUpTime);
             bedTime.setHours(wakeUpTime.getHours() + 17);  // 17時間後に寝る時間
 
-            const timeElapsedMinutes = (now - wakeUpTime) / (1000 * 60);  // 分単位で経過時間
-            const timeRemainingMinutes = (bedTime - now) / (1000 * 60);  // 残り時間（分）
+            const timeElapsedMinutes = Math.floor((now - wakeUpTime) / (1000 * 60));  // 分単位で経過時間（小数点以下切り捨て）
+            const timeRemainingMinutes = Math.floor((bedTime - now) / (1000 * 60));  // 残り時間（分、小数点以下切り捨て）
 
             const totalMinutes = 17 * 60;  // 17時間 = 1020分
             const percentElapsed = (timeElapsedMinutes / totalMinutes) * 100;
@@ -105,55 +106,10 @@
                 }]
             };
 
-            // 時間のラベルを時計回りに追加
-            const clockLabels = [];
-            const wakeTimeHours = wakeUpTime.getHours();
-            for (let i = 0; i < 17; i++) {
-                const hour = (wakeTimeHours + i) % 24;
-                clockLabels.push(`${String(hour).padStart(2, '0')}:00`);
-            }
-
             const ctx = document.getElementById('timeChart').getContext('2d');
             const chart = new Chart(ctx, {
                 type: 'pie',
-                data: data,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(tooltipItem) {
-                                    const value = tooltipItem.raw;
-                                    return `${formatTime(value)}`;
-                                }
-                            }
-                        },
-                        legend: {
-                            position: 'top',
-                        },
-                        datalabels: {
-                            display: true,
-                            formatter: function(value, context) {
-                                return formatTime(value);
-                            }
-                        }
-                    },
-                    circumference: Math.PI,
-                    rotation: -Math.PI / 2, // 12時の位置に起きた時間を表示するための調整
-                    plugins: {
-                        annotation: {
-                            annotations: [{
-                                type: 'label',
-                                content: `起きた時間: ${wakeUpTime.getHours()}:${String(wakeUpTime.getMinutes()).padStart(2, '0')}`,
-                                position: 'center',
-                                font: {
-                                    size: 16,
-                                    weight: 'bold'
-                                }
-                            }]
-                        }
-                    }
-                }
+                data: data
             });
         }
 
