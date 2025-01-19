@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ポモドーロタイマー</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #007BFF;
+            margin-bottom: 20px;
+        }
+
+        .timer {
+            font-size: 40px;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 20px;
+            color: #888;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ポモドーロタイマー</h1>
+        <div id="timer" class="timer">25:00</div>
+        <button id="startBtn">スタート</button>
+        <button id="resetBtn">リセット</button>
+        <div id="status" class="status">作業時間</div>
+    </div>
+
+    <script>
+        let workTime = 25 * 60; // 25分
+        let breakTime = 5 * 60; // 5分
+        let timer; // タイマー用変数
+        let isWorkTime = true; // 作業時間か休憩時間か
+        let timeLeft = workTime; // 残り時間
+
+        const timerElement = document.getElementById("timer");
+        const startButton = document.getElementById("startBtn");
+        const resetButton = document.getElementById("resetBtn");
+        const statusElement = document.getElementById("status");
+
+        // 時間を表示形式（mm:ss）に変換
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes < 10 ? '0' + minutes : minutes}:${remainingSeconds < 10 ? '0' + remainingSeconds : remainingSeconds}`;
+        }
+
+        // タイマーをスタート
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = formatTime(timeLeft);
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    if (isWorkTime) {
+                        // 休憩時間に切り替え
+                        isWorkTime = false;
+                        timeLeft = breakTime;
+                        statusElement.textContent = "休憩時間";
+                        timerElement.textContent = formatTime(timeLeft);
+                    } else {
+                        // 作業時間に切り替え
+                        isWorkTime = true;
+                        timeLeft = workTime;
+                        statusElement.textContent = "作業時間";
+                        timerElement.textContent = formatTime(timeLeft);
+                    }
+                }
+            }, 1000);
+        }
+
+        // スタートボタンの処理
+        startButton.addEventListener("click", () => {
+            if (timer) {
+                clearInterval(timer); // 既にタイマーが動いている場合は停止
+            }
+            startTimer();
+            startButton.disabled = true; // スタートボタンを無効化
+        });
+
+        // リセットボタンの処理
+        resetButton.addEventListener("click", () => {
+            clearInterval(timer); // タイマーを停止
+            isWorkTime = true;
+            timeLeft = workTime; // 作業時間にリセット
+            timerElement.textContent = formatTime(timeLeft);
+            statusElement.textContent = "作業時間";
+            startButton.disabled = false; // スタートボタンを再度有効化
+        });
+    </script>
+</body>
+</html>
