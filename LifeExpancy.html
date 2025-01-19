@@ -66,7 +66,7 @@
 
         <form id="lifeForm">
             <label for="currentAge">現在の年齢:</label>
-            <input type="number" id="currentAge" min="0" max="150" value="35" required>
+            <input type="number" id="currentAge" min="0" max="150" value="35" required readonly>
 
             <label for="deathAges">何歳で死ぬか (最大5つ):</label>
             <input type="number" class="deathAgeInput" min="1" max="150" value="40">
@@ -83,12 +83,10 @@
 
     <script>
         function calculateLifeDays() {
-            const currentAge = parseInt(document.getElementById('currentAge').value, 10);
-            const deathAgeInputs = document.querySelectorAll('.deathAgeInput');
             const today = new Date();
-
-            const birthDate = new Date(today);
-            birthDate.setFullYear(today.getFullYear() - currentAge);
+            const birthDate = new Date(1989, 4, 27); // 1989年5月27日生まれ
+            const currentAge = today.getFullYear() - birthDate.getFullYear();
+            const deathAgeInputs = document.querySelectorAll('.deathAgeInput');
 
             let resultsHTML = `<p>現在の年齢: <strong>${currentAge}</strong> 歳</p>`;
             resultsHTML += `<p>これまで生きた日数: <strong>${Math.floor((today - birthDate) / (1000 * 60 * 60 * 24))}</strong> 日</p>`;
