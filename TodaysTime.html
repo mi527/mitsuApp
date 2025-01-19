@@ -1,77 +1,112 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>今日の残り時間</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>残り時間計算アプリ</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            background: #ffffff;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 24px;
+            color: #007BFF;
+            margin-bottom: 20px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            width: 200px;
+            text-align: center;
+        }
+        canvas {
+            max-width: 100%;
+            height: 300px;
+        }
+        p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-  <h1>今日の残り時間</h1>
+    <div class="container">
+        <h1>残り時間計算</h1>
+        <p>起きた時間を入力してください</p>
+        <input type="time" id="wakeUpTime" value="07:00">
+        <button onclick="calculateTime()">計算</button>
 
-  <label for="wakeTime">起きた時間 (例: 07:00)</label>
-  <input type="time" id="wakeTime" value="07:00">
-  <button onclick="calculateTime()">計算</button>
+        <h2>今日の経過時間</h2>
+        <p id="elapsedTime"></p>
+        <p id="timeRemaining"></p>
+        <p id="percent"></p>
 
-  <div>
-    <p>現在、起きた時間から経過した時間: <span id="elapsedTime">0</span> 時間</p>
-    <p>寝るまで残り: <span id="remainingTime">0</span> 時間</p>
-    <p>今日の経過割合: <span id="percentage">0</span>%</p>
-  </div>
+        <h3>円グラフで表示</h3>
+        <canvas id="timeChart"></canvas>
+    </div>
 
-  <canvas id="myPieChart" width="400" height="400"></canvas>
+    <script>
+        function calculateTime() {
+            const wakeUpTimeInput = document.getElementById('wakeUpTime').value;
+            const wakeUpTime = new Date();
+            const [hours, minutes] = wakeUpTimeInput.split(':');
+            wakeUpTime.setHours(hours);
+            wakeUpTime.setMinutes(minutes);
+            wakeUpTime.setSeconds(0);
 
-  <script>
-    function calculateTime() {
-      // デフォルト設定
-      const wakeTimeInput = document.getElementById('wakeTime').value;
-      const wakeTime = new Date();
-      const [hours, minutes] = wakeTimeInput.split(':');
-      wakeTime.setHours(hours, minutes, 0, 0);
+            const now = new Date();
+            const bedTime = new Date(wakeUpTime);
+            bedTime.setHours(wakeUpTime.getHours() + 17);  // 17時間後に寝る時間
 
-      const now = new Date();
-      const dayStart = new Date();
-      dayStart.setHours(7, 0, 0, 0); // 7時
+            const timeElapsed = (now - wakeUpTime) / (1000 * 60 * 60);  // 時間単位で経過時間
+            const timeRemaining = (bedTime - now) / (1000 * 60 * 60);  // 残り時間
 
-      const dayEnd = new Date();
-      dayEnd.setHours(24, 0, 0, 0); // 24時（就寝予定）
+            const totalHours = 17;
+            const percentElapsed = (timeElapsed / totalHours) * 100;
 
-      // 今日の起きてからの時間を計算
-      const elapsedTime = Math.max((now - wakeTime) / 3600000, 0); // 時間換算
+            // 結果を表示
+            document.getElementById('elapsedTime').textContent = `今日起きてからの時間: ${timeElapsed.toFixed(2)} 時間`;
+            document.getElementById('timeRemaining').textContent = `寝るまで残り: ${timeRemaining.toFixed(2)} 時間`;
+            document.getElementById('percent').textContent = `1日の経過時間: ${percentElapsed.toFixed(2)}%`;
 
-      // 寝る時間の計算
-      const sleepTime = new Date(wakeTime);
-      sleepTime.setHours(sleepTime.getHours() + 17);
+            // グラフデータ
+            const data = {
+                labels: ['経過時間', '残り時間'],
+                datasets: [{
+                    data: [timeElapsed, timeRemaining],
+                    backgroundColor: ['#4caf50', '#ff6347'],
+                    hoverBackgroundColor: ['#45a049', '#ff4c39']
+                }]
+            };
 
-      // 残りの時間を計算
-      const remainingTime = Math.max((sleepTime - now) / 3600000, 0); // 時間換算
+            const ctx = document.getElementById('timeChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'pie',
+                data: data
+            });
+        }
 
-      // 今日の経過割合を計算
-      const totalDayTime = 17 * 60; // 17時間
-      const passedTimeInMinutes = (now - wakeTime) / 60000;
-      const percentage = Math.min((passedTimeInMinutes / totalDayTime) * 100, 100);
-
-      // 結果を画面に表示
-      document.getElementById('elapsedTime').textContent = elapsedTime.toFixed(1);
-      document.getElementById('remainingTime').textContent = remainingTime.toFixed(1);
-      document.getElementById('percentage').textContent = percentage.toFixed(1);
-
-      // 円グラフのデータ設定
-      const data = {
-        labels: ['起きている時間', '残り時間'],
-        datasets: [{
-          data: [elapsedTime, remainingTime],
-          backgroundColor: ['#FF6384', '#36A2EB'],
-          hoverBackgroundColor: ['#FF4560', '#55A9D7']
-        }]
-      };
-
-      const ctx = document.getElementById('myPieChart').getContext('2d');
-      const myPieChart = new Chart(ctx, {
-        type: 'pie',
-        data: data
-      });
-    }
-  </script>
+        // ページ読み込み時に自動計算
+        window.onload = calculateTime;
+    </script>
 </body>
 </html>
